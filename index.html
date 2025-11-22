@@ -1,84 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Roblox Dashboard</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+  <meta charset="UTF-8">
+  <title>Roblox Dashboard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
-  body {
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #1f1c2c, #928dab);
-    color: #fff;
-    margin: 0;
-    padding: 0;
-  }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #1f1c2c, #928dab);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
 
-  header {
-    text-align: center;
-    padding: 30px 20px;
-    font-size: 2.5em;
-    font-weight: 700;
-    text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff;
-  }
+    header {
+      text-align: center;
+      padding: 30px 20px;
+      font-size: 2.5em;
+      font-weight: 700;
+      text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff;
+    }
 
-  #games {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    padding: 20px;
-    max-width: 1200px;
-    margin: auto;
-  }
+    #games {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
 
-  .card {
-    background: rgba(255,255,255,0.05);
-    border-radius: 15px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 0 15px rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
-    transition: transform 0.3s, box-shadow 0.3s;
-  }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
 
-  .card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 0 30px #ff00ff, 0 0 60px #00ffff;
-  }
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 0 30px #ff00ff, 0 0 60px #00ffff;
+    }
 
-  .card img {
-    width: 100px;
-    height: 100px;
-    border-radius: 15px;
-    margin-bottom: 15px;
-    border: 2px solid #fff;
-    box-shadow: 0 0 10px #fff;
-  }
+    .card img {
+      width: 100px;
+      height: 100px;
+      border-radius: 15px;
+      margin-bottom: 15px;
+      border: 2px solid #fff;
+      box-shadow: 0 0 10px #fff;
+    }
 
-  .card h2 {
-    margin: 10px 0;
-    font-size: 1.5em;
-    text-shadow: 0 0 5px #fff;
-  }
+    .card h2 {
+      margin: 10px 0;
+      font-size: 1.5em;
+      text-shadow: 0 0 5px #fff;
+    }
 
-  .card p {
-    margin: 5px 0;
-    font-size: 1.1em;
-  }
+    .card p {
+      margin: 5px 0;
+      font-size: 1.1em;
+    }
 
-  .totals {
-    grid-column: 1 / -1;
-    background: rgba(255,255,255,0.1);
-    box-shadow: 0 0 20px #fff;
-  }
-</style>
+    .totals {
+      grid-column: 1 / -1;
+      background: rgba(255,255,255,0.1);
+      box-shadow: 0 0 20px #fff;
+    }
+  </style>
 </head>
 <body>
 <header>My Roblox Dashboard</header>
 <div id="games"></div>
 
 <script>
-  const universeIds = [
+  // These should be PLACE IDS (the numbers in the /games/<id>/ URL)
+  const placeIds = [
     8984207444,  // Steal a Baby Sprunki
     8926153446,  // Highschool RP
     8413342922,  // Sammy and Jandel Tower
@@ -86,38 +87,60 @@
   ];
 
   async function fetchStats() {
-    const url = `https://games.roblox.com/v1/games?universeIds=${universeIds.join(",")}`;
-    const res = await fetch(url);
-    const data = await res.json();
+    const container = document.getElementById("games");
 
-    let html = "";
-    let totalActive = 0;
-    let totalVisits = 0;
+    try {
+      const url = `https://games.roblox.com/v1/games/multiget-place-details?placeIds=${placeIds.join(",")}`;
+      const res = await fetch(url);
 
-    data.data.forEach(game => {
-      totalActive += game.playing;
-      totalVisits += game.visits;
+      if (!res.ok) {
+        throw new Error(`HTTP error ${res.status}`);
+      }
 
-      const thumbnail = `https://www.roblox.com/asset-thumbnail/image?assetId=${game.rootPlaceId}&width=150&height=150&format=png`;
+      // This endpoint returns an array, not an object with "data"
+      const games = await res.json();
+
+      let html = "";
+      let totalActive = 0;
+      let totalVisits = 0;
+
+      games.forEach(game => {
+        const active = game.playing ?? 0;
+        const visits = (game.placeVisits ?? game.visits ?? 0); // handle either field name
+
+        totalActive += active;
+        totalVisits += visits;
+
+        const thumbnail = `https://www.roblox.com/asset-thumbnail/image?assetId=${game.placeId}&width=150&height=150&format=png`;
+
+        html += `
+          <div class="card">
+            <img src="${thumbnail}" alt="${game.name}">
+            <h2>${game.name}</h2>
+            <p><strong>Active Players:</strong> ${active}</p>
+            <p><strong>Total Visits:</strong> ${visits.toLocaleString()}</p>
+          </div>
+        `;
+      });
 
       html += `
-        <div class="card">
-          <img src="${thumbnail}" alt="${game.name}">
-          <h2>${game.name}</h2>
-          <p><strong>Active Players:</strong> ${game.playing}</p>
-          <p><strong>Total Visits:</strong> ${game.visits.toLocaleString()}</p>
-        </div>`;
-    });
+        <div class="card totals">
+          <h2>Totals Across All Games</h2>
+          <p><strong>Total Active Players:</strong> ${totalActive}</p>
+          <p><strong>Total Visits:</strong> ${totalVisits.toLocaleString()}</p>
+        </div>
+      `;
 
-    html += `
-      <div class="card totals">
-        <h2>Totals Across All Games</h2>
-        <p><strong>Total Active Players:</strong> ${totalActive}</p>
-        <p><strong>Total Visits:</strong> ${totalVisits.toLocaleString()}</p>
-      </div>
-    `;
-
-    document.getElementById("games").innerHTML = html;
+      container.innerHTML = html;
+    } catch (err) {
+      console.error(err);
+      container.innerHTML = `
+        <div class="card totals">
+          <h2>Error</h2>
+          <p>Could not load game stats: ${err.message}</p>
+        </div>
+      `;
+    }
   }
 
   fetchStats();
