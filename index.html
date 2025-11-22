@@ -1,1 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Roblox Dashboard</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      background: #f5f5f5;
+    }
+    h1 { text-align: center; }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      margin: 10px auto;
+      max-width: 500px;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Roblox Dashboard</h1>
+  <div id="games"></div>
+
+  <script>
+    // 👇 Put your Universe IDs here
+    const universeIds = [
+      8984207444,  // Steal a baby sprunki
+      8926153446   // Highschool rp
+      8413342922   // sammy and jandel tower
+      9028786677   // Team evil sammy
+    ];
+
+    async function fetchStats() {
+      const url = `https://games.roblox.com/v1/games?universeIds=${universeIds.join(",")}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      let html = "";
+      let totalActive = 0;
+      let totalVisits = 0;
+
+      data.data.forEach(game => {
+        totalActive += game.playing;
+        totalVisits += game.visits;
+
+        html += `
+        <div class="card">
+          <h2>${game.name}</h2>
+          <p><strong>Active Players:</strong> ${game.playing}</p>
+          <p><strong>Total Visits:</strong> ${game.visits.toLocaleString()}</p>
+        </div>`;
+      });
+
+      html += `
+        <div class="card" style="background:#e8e8e8;">
+          <h2>Totals Across All Games</h2>
+          <p><strong>Total Active:</strong> ${totalActive}</p>
+          <p><strong>Total Visits:</strong> ${totalVisits.toLocaleString()}</p>
+        </div>
+      `;
+
+      document.getElementById("games").innerHTML = html;
+    }
+
+    fetchStats();
+    setInterval(fetchStats, 5000);
+  </script>
+</body>
+</html>
 
