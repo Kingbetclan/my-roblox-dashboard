@@ -1,73 +1,127 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Roblox Dashboard</title>
-  <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      padding: 20px; 
-      background: #f5f5f5;
-    }
-    h1 { text-align: center; }
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      margin: 10px auto;
-      max-width: 500px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Roblox Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #1f1c2c, #928dab);
+    color: #fff;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    text-align: center;
+    padding: 30px 20px;
+    font-size: 2.5em;
+    font-weight: 700;
+    text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff;
+  }
+
+  #games {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.05);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 0 30px #ff00ff, 0 0 60px #00ffff;
+  }
+
+  .card img {
+    width: 100px;
+    height: 100px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    border: 2px solid #fff;
+    box-shadow: 0 0 10px #fff;
+  }
+
+  .card h2 {
+    margin: 10px 0;
+    font-size: 1.5em;
+    text-shadow: 0 0 5px #fff;
+  }
+
+  .card p {
+    margin: 5px 0;
+    font-size: 1.1em;
+  }
+
+  .totals {
+    grid-column: 1 / -1;
+    background: rgba(255,255,255,0.1);
+    box-shadow: 0 0 20px #fff;
+  }
+</style>
 </head>
 <body>
-  <h1>My Roblox Dashboard</h1>
-  <div id="games"></div>
+<header>My Roblox Dashboard</header>
+<div id="games"></div>
 
-  <script>
-    // 👇 Put your Universe IDs here
-    const universeIds = [
-      8984207444,  // Steal a baby sprunki
-      8926153446   // Highschool rp
-      8413342922   // sammy and jandel tower
-      9028786677   // Team evil sammy
-    ];
+<script>
+  const universeIds = [
+    8984207444,  // Steal a Baby Sprunki
+    8926153446,  // Highschool RP
+    8413342922,  // Sammy and Jandel Tower
+    9028786677   // Team Evil Sammy
+  ];
 
-    async function fetchStats() {
-      const url = `https://games.roblox.com/v1/games?universeIds=${universeIds.join(",")}`;
-      const res = await fetch(url);
-      const data = await res.json();
+  async function fetchStats() {
+    const url = `https://games.roblox.com/v1/games?universeIds=${universeIds.join(",")}`;
+    const res = await fetch(url);
+    const data = await res.json();
 
-      let html = "";
-      let totalActive = 0;
-      let totalVisits = 0;
+    let html = "";
+    let totalActive = 0;
+    let totalVisits = 0;
 
-      data.data.forEach(game => {
-        totalActive += game.playing;
-        totalVisits += game.visits;
+    data.data.forEach(game => {
+      totalActive += game.playing;
+      totalVisits += game.visits;
 
-        html += `
+      const thumbnail = `https://www.roblox.com/asset-thumbnail/image?assetId=${game.rootPlaceId}&width=150&height=150&format=png`;
+
+      html += `
         <div class="card">
+          <img src="${thumbnail}" alt="${game.name}">
           <h2>${game.name}</h2>
           <p><strong>Active Players:</strong> ${game.playing}</p>
           <p><strong>Total Visits:</strong> ${game.visits.toLocaleString()}</p>
         </div>`;
-      });
+    });
 
-      html += `
-        <div class="card" style="background:#e8e8e8;">
-          <h2>Totals Across All Games</h2>
-          <p><strong>Total Active:</strong> ${totalActive}</p>
-          <p><strong>Total Visits:</strong> ${totalVisits.toLocaleString()}</p>
-        </div>
-      `;
+    html += `
+      <div class="card totals">
+        <h2>Totals Across All Games</h2>
+        <p><strong>Total Active Players:</strong> ${totalActive}</p>
+        <p><strong>Total Visits:</strong> ${totalVisits.toLocaleString()}</p>
+      </div>
+    `;
 
-      document.getElementById("games").innerHTML = html;
-    }
+    document.getElementById("games").innerHTML = html;
+  }
 
-    fetchStats();
-    setInterval(fetchStats, 5000);
-  </script>
+  fetchStats();
+  setInterval(fetchStats, 5000);
+</script>
 </body>
 </html>
-
